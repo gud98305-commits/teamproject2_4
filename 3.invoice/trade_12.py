@@ -17,6 +17,28 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 # -----------------------------------------------------------------------------
+def get_tariff_file_by_country(country: str):
+    # [수정] 단순히 "tariff_files"라고 쓰면 실행 위치에 따라 못 찾을 수 있음
+    # 현재 파일(trade_12.py)이 있는 위치를 기준으로 경로를 잡아야 함
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    folder = os.path.join(current_dir, "tariff_files")
+
+    # 디버깅용: 경로가 맞는지 터미널에 찍어보기 (나중에 지우셔도 됩니다)
+    print(f"📂 관세 폴더 찾는 경로: {folder}")
+
+    if not os.path.exists(folder):
+        # 경로가 틀렸을 때만 에러 메시지 출력
+        print("❌ 폴더를 찾을 수 없습니다.") 
+        return None
+
+    # ... (이 아래 코드는 기존과 동일) ...
+    files = [f for f in os.listdir(folder) if f.lower().endswith((".xls", ".xlsx", ".csv"))]
+    if not files:
+        return None
+    
+    # ... (나머지 로직 그대로 유지) ...
+
+# -----------------------------------------------------------------------------
 # STREAMLIT 기본 설정 (절대 한 번만!)
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="KITA Trade AX Master", page_icon="🌏", layout="wide")
