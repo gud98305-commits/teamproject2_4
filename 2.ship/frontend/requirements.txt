@@ -1,0 +1,14 @@
+streamlit
+pandas
+openpyxl
+flask
+requests
+python-dotenv
+folium
+streamlit-folium
+searoute
+reportlab
+websocket-client
+yfinance
+streamlit-autorefresh
+plotly
