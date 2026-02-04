@@ -19,3 +19,5 @@ websocket-client>=1.6.0
 
 # materials
 yfinance>=0.2.40
+
+streamlit-autorefresh>=
