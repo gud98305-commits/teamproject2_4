@@ -1,4 +1,6 @@
 streamlit
+pandas
+openpyxl
 flask
 requests
 python-dotenv
