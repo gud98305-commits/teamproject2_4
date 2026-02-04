@@ -1,0 +1,73 @@
+============================================================
+ OFAC Sanctions List CSV Download Instructions
+ US Department of the Treasury
+============================================================
+
+[Purpose]
+Place OFAC SDN CSV files in this directory to enhance
+the sanctions baseline data with real entity counts.
+
+Without these files, the system uses the built-in static
+baseline data (OFAC_SANCTIONS_PROGRAMS) which is sufficient
+for geopolitical risk scoring.
+
+[Download URLs - US Treasury Official]
+
+1. SDN List (Primary - Specially Designated Nationals):
+   https://www.treasury.gov/ofac/downloads/sdn.csv
+
+2. SDN Comments:
+   https://www.treasury.gov/ofac/downloads/sdn_comments.csv
+
+3. Consolidated List (Non-SDN):
+   https://www.treasury.gov/ofac/downloads/cons_prim.csv
+
+4. Consolidated Comments:
+   https://www.treasury.gov/ofac/downloads/cons_comments.csv
+
+5. Addresses:
+   https://www.treasury.gov/ofac/downloads/add.csv
+
+6. Alternate Names:
+   https://www.treasury.gov/ofac/downloads/alt.csv
+
+[Quick Download - PowerShell]
+
+Invoke-WebRequest -Uri "https://www.treasury.gov/ofac/downloads/sdn.csv" -OutFile "sdn.csv"
+Invoke-WebRequest -Uri "https://www.treasury.gov/ofac/downloads/cons_prim.csv" -OutFile "cons_prim.csv"
+
+[Quick Download - curl]
+
+curl -o sdn.csv https://www.treasury.gov/ofac/downloads/sdn.csv
+curl -o cons_prim.csv https://www.treasury.gov/ofac/downloads/cons_prim.csv
+
+[OFAC Sanctions Programs covered in baseline]
+
+- UKRAINE-/RUSSIA-RELATED (EO 13661, 13662, 13685, 14024)
+- IRAN (IEEPA, ISA, CISADA)
+- DPRK / North Korea (EO 13551, 13687, 13722, 13810)
+- CUBA (CACR, EO 13757)
+- SYRIA (EO 13338, 13572, Caesar Act)
+- VENEZUELA (EO 13692, 13808, 13884)
+- BURMA / Myanmar (JADE Act, EO 14014)
+- BELARUS (EO 14038)
+- SUDAN
+- LIBYA (EO 13566)
+- SOMALIA (EO 13536)
+- YEMEN (EO 13611)
+- NS-CMIC / Chinese Military Companies (EO 13959, 14032)
+
+[Official OFAC Resources]
+
+- Sanctions List Service: https://ofac.treasury.gov/sanctions-list-service
+- SDN List Search: https://sanctionssearch.ofac.treas.gov/
+- Recent Actions: https://ofac.treasury.gov/recent-actions
+- FAQ: https://ofac.treasury.gov/faqs/topic/1641
+
+[Update Frequency]
+
+OFAC updates the SDN list regularly (multiple times per month).
+For the most current data, re-download periodically.
+The system caches loaded CSV data for 24 hours.
+
+============================================================
