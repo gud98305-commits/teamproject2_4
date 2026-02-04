@@ -1,16 +1,18 @@
-# AI Trade Assistant v2.0 - Requirements
-# Python 3.9+
-
-# Core
+# --- Core Application ---
 streamlit>=1.30.0
+pandas>=2.0.0
 
-# Gmail API (optional)
+# --- Gmail API Integration ---
 google-api-python-client>=2.100.0
 google-auth-httplib2>=0.1.1
 google-auth-oauthlib>=1.1.0
 
-# OpenAI (optional - for AI reply draft)
+# --- AI & NLP (OpenAI) ---
 openai>=1.10.0
+tiktoken>=0.5.0
 
-# Environment
+# --- Environment Management ---
 python-dotenv>=1.0.0
+
+# --- Email Parsing (Optional but Recommended) ---
+beautifulsoup4>=4.12.0

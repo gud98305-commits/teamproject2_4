@@ -23,9 +23,26 @@ import re
 import urllib.parse
 import logging
 import asyncio
+import json  # [추가] JSON 처리를 위해 필요합니다
 from datetime import datetime, timedelta
 
 import streamlit as st
+
+# ==============================================================================
+# [핵심 수정] Streamlit Cloud 배포를 위한 파일 생성 코드
+# ==============================================================================
+# 서버(Streamlit Cloud)에는 보안상 'credentials.json' 파일을 올리지 않았습니다.
+# 따라서 앱이 실행될 때, Secrets에 저장해둔 내용을 꺼내서 임시로 파일을 만들어줘야 합니다.
+
+# 만약 시크릿에 'CREDENTIALS_JSON'이라는 키가 있다면?
+if "CREDENTIALS_JSON" in st.secrets:
+    # 1. 시크릿 내용을 변수에 담습니다.
+    secret_content = st.secrets["CREDENTIALS_JSON"]
+    
+    # 2. 'credentials.json'이라는 이름으로 파일을 만듭니다.
+    # (이제 밑에 있는 코드들이 이 파일을 찾아서 로그인할 수 있게 됩니다.)
+    with open("credentials.json", "w") as f:
+        f.write(secret_content)
 
 # 환경변수 로드
 try:
