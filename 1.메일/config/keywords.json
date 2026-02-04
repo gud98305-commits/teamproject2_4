@@ -1,0 +1,60 @@
+{
+  "product_clarity": {
+    "weight": 0.15,
+    "description": "제품 명확성 - 구체적인 제품 정보 제시 여부",
+    "words": {
+      "model no": 20, "model number": 20, "part number": 20, "p/n": 20, "sku": 15,
+      "drawing": 25, "blueprint": 25, "blueprints": 25, "cad": 20, "data sheet": 20, "datasheet": 20,
+      "specification": 15, "spec": 15, "specs": 15,
+      "tolerance": 15, "material": 10, "grade": 10, "dimensions": 10, "size": 10,
+      "customized": 20, "custom": 15, "modification": 15, "tailored": 15, "oem": 20, "odm": 20,
+      "application": 10, "operating environment": 15, "usage": 10, "industry": 10,
+      "hs code": 15, "hscode": 15, "tariff": 10
+    }
+  },
+  "buying_intent": {
+    "weight": 0.50,
+    "description": "구매 의도 - 실제 구매 가능성 판단",
+    "words": {
+      "urgent": 25, "urgently": 25, "asap": 20, "immediately": 20,
+      "timeline": 15, "deadline": 20, "lead time": 15, "delivery date": 15,
+      "target price": 30, "budget": 25, "price range": 20, "unit price": 15, "negotiate": 15,
+      "purchase order": 35, "po": 30, "formal offer": 25, "proforma invoice": 30, "pi": 25,
+      "place order": 30, "confirm order": 30, "ready to order": 30,
+      "sample test": 20, "trial order": 25, "trial run": 20, "after testing": 15, "next step": 15,
+      "bulk order": 25, "mass production": 20, "regular order": 20,
+      "distributor": 15, "retail network": 15, "selling power": 10, "market share": 10,
+      "purchasing manager": 20, "procurement": 15, "decision maker": 20, "director": 15, "ceo": 15,
+      "recommended by": 15, "referred by": 15, "previous contact": 15, "long-term": 15
+    }
+  },
+  "trade_terms": {
+    "weight": 0.35,
+    "description": "무역 조건 - 전문성 및 구체적 거래 조건",
+    "words": {
+      "fob": 20, "cif": 20, "cfr": 15, "ddp": 25, "dap": 20, "exw": 15, "incoterms": 20,
+      "l/c": 30, "letter of credit": 30, "t/t": 25, "telegraphic transfer": 25,
+      "net 30": 20, "net 60": 20, "payment terms": 20, "advance payment": 15, "deposit": 15,
+      "port of discharge": 15, "port of loading": 15, "destination": 10, "shipping": 10,
+      "forwarder": 15, "freight": 15, "container": 15, "fcl": 15, "lcl": 15,
+      "certificate of origin": 25, "coo": 20, "msds": 20, "ce": 15, "fcc": 15, "rohs": 15,
+      "inspection": 15, "quality control": 15, "warranty": 10,
+      "quotation": 15, "quote": 15, "estimate": 10, "moq": 20, "minimum order": 20
+    }
+  },
+  "spam_keywords": {
+    "description": "스팸 판정 키워드",
+    "words": {
+      "unsubscribe": -30, "marketing": -20, "newsletter": -25, "promotion": -20,
+      "click here": -25, "free": -15, "winner": -30, "congratulations": -25,
+      "lottery": -35, "prize": -30, "claim your": -30, "act now": -25,
+      "limited time": -20, "special offer": -20, "discount": -10
+    }
+  },
+  "bonus": {
+    "thread_reply": 20,
+    "has_attachment": 10,
+    "known_sender": 15,
+    "high_value_attachment": 15
+  }
+}
