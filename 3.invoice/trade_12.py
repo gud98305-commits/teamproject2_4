@@ -744,6 +744,481 @@ def extract_tariff_rate(df_tariff, hs_code):
     except:
         return 0.0
 
+# =============================================================================
+# PART 4 — E/F/C/D 그룹 기반 운송비 + 보험 + 관세 + 최종 비용 계산
+# =============================================================================
+
+import requests
+
+# ----------------------------------------------------------
+# API 기반 관세율 조회 함수 (신규 추가)
+# ----------------------------------------------------------
+def get_tariff_rate_api(hs_code: str, country: str):
+    """
+    외부 관세 API에서 HS Code 기준 관세율 조회
+    실패 시 None 리턴 → 파일 방식으로 fallback
+    """
+    try:
+        # ▼ 실제 API 주소로 교체 필요!
+        url = f"https://api.example.com/tariff?hs={hs_code}&country={country}"
+
+        response = requests.get(url, timeout=5).json()
+
+        # ▼ API 반환 형식에 맞게 rate 추출 조정 필요
+        # 예시 형태: {"mfn_rate": 8.0, "preferential_rate": 0.0}
+        if "mfn_rate" in response:
+            return float(response["mfn_rate"]) / 100  # 8.0 → 0.08 형식 변환
+
+    except:
+        pass
+
+    return None  # API 실패 시 파일 매칭으로 넘어감
+
+
+# ----------------------------------------------------------
+# 보험 계산
+# ----------------------------------------------------------
+def compute_insurance_value(price, qty, freight, mode, manual_rate):
+    cif = price * qty + freight
+    if mode == "AI":
+        return cif * 0.003   # 0.3%
+    return cif * manual_rate
+
+
+# ----------------------------------------------------------
+# 인코텀즈 비용 계산
+# ----------------------------------------------------------
+def compute_incoterm_cost(goods_value, freight, insurance, inco):
+    if inco == "EXW":
+        return goods_value
+    if inco in ["FCA", "FAS", "FOB"]:
+        return goods_value
+    if inco in ["CFR", "CPT"]:
+        return goods_value + freight
+    if inco in ["CIF", "CIP"]:
+        return goods_value + freight + insurance
+    if inco in ["DAP", "DPU", "DDP"]:
+        return goods_value + freight + insurance
+
+    return goods_value
+
+
+# ----------------------------------------------------------
+# 관세 계산
+# ----------------------------------------------------------
+def compute_duty(cost, duty_rate, flow):
+    return cost * duty_rate if flow == "import" else 0.0
+
+
+# ----------------------------------------------------------
+# 개별 시나리오 계산
+# ----------------------------------------------------------
+def calculate_trade_cost_row(price, qty, freight, insurance, inco, duty_rate, flow):
+    goods_value = price * qty
+    cif_value = goods_value + freight + insurance
+
+    base_cost = compute_incoterm_cost(goods_value, freight, insurance, inco)
+    duty = compute_duty(base_cost, duty_rate, flow)
+    total = base_cost + duty
+
+    scope_notes = {
+        "EXW": "공장인도 — 모든 비용/위험 매수인 부담",
+        "FCA": "운송인 인도 — 운임·보험 제외",
+        "FAS": "선측 인도 — 운임·보험 제외",
+        "FOB": "본선 인도 — 운임·보험 제외",
+        "CFR": "운임포함 — 보험 제외",
+        "CIF": "운임·보험 포함",
+        "CPT": "운송비지급 — 보험 제외",
+        "CIP": "운송비·보험 지급",
+        "DAP": "도착장소 인도 — 운임·보험 포함",
+        "DPU": "양하장소 인도 — 운임·보험 포함",
+        "DDP": "관세지급 인도 — 전부 포함",
+    }
+
+    return {
+        "Goods Value": goods_value,
+        "Freight": freight,
+        "Insurance": insurance,
+        "CIF Value": cif_value,
+        "Duty": duty,
+        "Total Landing Cost": total,
+        "Scope Note": scope_notes.get(inco, ""),
+    }
+
+
+# ----------------------------------------------------------
+# 관세율 자동 추출 (파일 기반 fallback)
+# ----------------------------------------------------------
+def extract_tariff_rate(df_tariff, hs_code):
+    if df_tariff is None:
+        return 0.0
+
+    try:
+        hs_digits = re.sub(r"\D", "", hs_code)
+        hs6 = hs_digits[:6]
+        hs10 = hs_digits[:10]
+
+        df = df_tariff.copy()
+        df.columns = [str(c).replace(" ", "").lower() for c in df.columns]
+
+        hs_col = None
+        for c in df.columns:
+            if any(k in c for k in ["hs", "세번", "code", "품목"]):
+                hs_col = c
+                break
+
+        if hs_col is None:
+            return 0.0
+
+        df["hs_digits"] = df[hs_col].astype(str).str.replace(r"\D", "", regex=True)
+
+        hit = None
+        if len(hs10) == 10:
+            hit = df[df["hs_digits"].str.startswith(hs10)]
+        if hit is None or hit.empty:
+            hit = df[df["hs_digits"].str.startswith(hs6)]
+        if hit.empty:
+            return 0.0
+
+        rate_col = None
+        for c in df.columns:
+            if any(k in c for k in ["세율", "관세", "%", "rate"]):
+                rate_col = c
+                break
+
+        if rate_col is None:
+            return 0.0
+
+        raw = str(hit.iloc[0][rate_col]).lower().strip()
+
+        if raw in ["", "0", "0%", "free", "면세"]:
+            return 0.0
+
+        m = re.search(r"(\d+(\.\d+)?)\s*%", raw)
+        if m:
+            return float(m.group(1)) / 100.0
+
+        v = float(raw)
+        return v / 100 if v > 1 else v
+
+    except:
+        return 0.0
+
+
+# =============================================================================
+# PART 4 — E/F/C/D 그룹 기반 운송비 + 보험 + 관세 + 최종 비용 계산 (안전/강화판)
+# =============================================================================
+
+# ----------------------------------------------------------
+# 공통: HS 정규화
+# ----------------------------------------------------------
+def normalize_hs(hs_code: str) -> str:
+    return re.sub(r"\D", "", str(hs_code or ""))
+
+
+# ----------------------------------------------------------
+# 보험 계산
+# ----------------------------------------------------------
+def compute_insurance_value(price, qty, freight, mode, manual_rate):
+    """
+    보험(AI/수동) 계산 (절대 오류 방지)
+    """
+    try:
+        cif = float(price) * float(qty) + float(freight)
+        if mode == "AI":
+            return cif * 0.003  # 0.3%
+        return cif * float(manual_rate)
+    except:
+        return 0.0
+
+
+# ----------------------------------------------------------
+# 인코텀즈 비용 계산
+# ----------------------------------------------------------
+def compute_incoterm_cost(goods_value, freight, insurance, inco):
+    """
+    Incoterms 2020 비용 구성 규칙 (절대 오류 방지)
+    """
+    try:
+        goods_value = float(goods_value)
+        freight = float(freight)
+        insurance = float(insurance)
+        inco = str(inco or "").upper().strip()
+
+        if inco == "EXW":
+            return goods_value
+
+        if inco in ["FCA", "FAS", "FOB"]:
+            return goods_value
+
+        if inco in ["CFR", "CPT"]:
+            return goods_value + freight
+
+        if inco in ["CIF", "CIP"]:
+            return goods_value + freight + insurance
+
+        if inco in ["DAP", "DPU", "DDP"]:
+            return goods_value + freight + insurance
+
+        return goods_value
+    except:
+        return 0.0
+
+
+# ----------------------------------------------------------
+# 관세 계산 (중요: 수출이어도 '도착국 수입관세' 반영 옵션 지원)
+# ----------------------------------------------------------
+def compute_duty(cost, duty_rate, apply_duty: bool):
+    """
+    apply_duty=True 인 경우 관세 부과
+    """
+    try:
+        if not apply_duty:
+            return 0.0
+        return float(cost) * float(duty_rate)
+    except:
+        return 0.0
+
+
+# ----------------------------------------------------------
+# 개별 시나리오 계산
+# ----------------------------------------------------------
+def calculate_trade_cost_row(price, qty, freight, insurance, inco, duty_rate, apply_duty: bool):
+    """
+    하나의 인코텀즈에 대한 총비용 계산 (절대 오류 방지)
+    """
+    scope_notes = {
+        "EXW": "공장인도 — 모든 비용/위험 매수인 부담",
+        "FCA": "운송인 인도 — 운임·보험 제외",
+        "FAS": "선측 인도 — 운임·보험 제외",
+        "FOB": "본선 인도 — 운임·보험 제외",
+        "CFR": "운임포함 — 보험 제외",
+        "CIF": "운임·보험 포함",
+        "CPT": "운송비지급 — 보험 제외",
+        "CIP": "운송비·보험 지급",
+        "DAP": "도착장소 인도 — 운임·보험 포함",
+        "DPU": "양하장소 인도 — 운임·보험 포함",
+        "DDP": "관세지급 인도 — 전부 포함",
+    }
+
+    try:
+        price = float(price)
+        qty = float(qty)
+        freight = float(freight)
+        insurance = float(insurance)
+
+        goods_value = price * qty
+        cif_value = goods_value + freight + insurance
+
+        base_cost = compute_incoterm_cost(goods_value, freight, insurance, inco)
+        duty = compute_duty(base_cost, duty_rate, apply_duty)
+        total = float(base_cost) + float(duty)
+
+        return {
+            "Goods Value": goods_value,
+            "Freight": freight,
+            "Insurance": insurance,
+            "CIF Value": cif_value,
+            "Duty": duty,
+            "Total Landing Cost": total,
+            "Scope Note": scope_notes.get(str(inco).upper().strip(), ""),
+        }
+    except:
+        return {
+            "Goods Value": 0.0,
+            "Freight": 0.0,
+            "Insurance": 0.0,
+            "CIF Value": 0.0,
+            "Duty": 0.0,
+            "Total Landing Cost": 0.0,
+            "Scope Note": "",
+        }
+
+
+# ----------------------------------------------------------
+# 파일 기반 관세율 추출 (강화판: HS컬럼/세율컬럼 자동 추론 개선)
+# ----------------------------------------------------------
+def extract_tariff_rate(df_tariff, hs_code):
+    """
+    관세 파일에서 HS6/HS10 매칭하여 관세율 자동 추출
+    - 실패하면 0.0 반환 (절대 오류 방지)
+    """
+    try:
+        if df_tariff is None or len(df_tariff) == 0:
+            return 0.0
+
+        hs_digits = normalize_hs(hs_code)
+        if not hs_digits:
+            return 0.0
+
+        hs6 = hs_digits[:6]
+        hs10 = hs_digits[:10]
+
+        df = df_tariff.copy()
+        df.columns = [str(c).strip().lower().replace(" ", "") for c in df.columns]
+
+        # 1) HS 컬럼 추정: 컬럼 값에서 숫자만 뽑았을 때 6자리 이상이 많이 나오는 컬럼 우선
+        best_hs_col = None
+        best_score = -1
+        for c in df.columns:
+            sample = df[c].astype(str).head(200)
+            digits = sample.str.replace(r"\D", "", regex=True)
+            score = (digits.str.len() >= 6).sum()
+            # 컬럼명이 hs/code/세번 등 포함하면 가중치
+            if any(k in c for k in ["hs", "code", "세번", "품목", "hscode"]):
+                score += 50
+            if score > best_score:
+                best_score = score
+                best_hs_col = c
+
+        if best_hs_col is None:
+            return 0.0
+
+        df["hs_digits"] = df[best_hs_col].astype(str).str.replace(r"\D", "", regex=True)
+
+        # 2) HS 매칭
+        hit = None
+        if len(hs10) >= 10:
+            hit = df[df["hs_digits"].str.startswith(hs10)]
+        if hit is None or hit.empty:
+            hit = df[df["hs_digits"].str.startswith(hs6)]
+        if hit is None or hit.empty:
+            return 0.0
+
+        # 3) 세율 컬럼 추정: %가 포함된 값이 많은 컬럼 / rate 키워드 우선
+        best_rate_col = None
+        best_rate_score = -1
+        for c in df.columns:
+            sample = hit[c].astype(str).head(200).str.lower()
+            score = sample.str.contains("%").sum()
+            if any(k in c for k in ["rate", "세율", "관세", "duty", "mfn", "tax", "advalorem"]):
+                score += 50
+            if score > best_rate_score:
+                best_rate_score = score
+                best_rate_col = c
+
+        if best_rate_col is None:
+            return 0.0
+
+        raw = str(hit.iloc[0][best_rate_col]).lower().strip()
+
+        # free/면세 처리
+        if raw in ["", "0", "0.0", "0%", "free", "면세", "무관세"]:
+            return 0.0
+
+        # % 포함
+        m = re.search(r"(\d+(\.\d+)?)\s*%", raw)
+        if m:
+            return float(m.group(1)) / 100.0
+
+        # 숫자만
+        v = float(re.sub(r"[^\d\.]", "", raw))
+        return v / 100 if v > 1 else v
+
+    except:
+        return 0.0
+
+
+# ----------------------------------------------------------
+# OpenAI로 관세율 "파일에서" 추출 (추측 금지, df에서 찾기)
+# ----------------------------------------------------------
+def extract_tariff_rate_with_openai(df_tariff, hs_code, country=""):
+    """
+    OpenAI를 이용해 df_tariff 안에서 HS에 해당하는 관세율을 찾아 JSON으로 반환
+    - df에 없으면 None 반환
+    - 절대 오류 안 나게 처리
+    """
+    try:
+        if client is None:
+            return None
+        if df_tariff is None or len(df_tariff) == 0:
+            return None
+
+        hs_digits = normalize_hs(hs_code)
+        if not hs_digits:
+            return None
+
+        hs6 = hs_digits[:6]
+        hs10 = hs_digits[:10]
+
+        df = df_tariff.copy()
+        # 너무 크면 토큰 초과라, 우선 HS로 필터링 시도 후 샘플만 보냄
+        # 1) 컬럼명 정리
+        df.columns = [str(c).strip() for c in df.columns]
+
+        # 2) HS로 필터링 시도 (컬럼을 하나씩 보며 매칭되는지 탐색)
+        candidate_rows = None
+        for c in df.columns:
+            s = df[c].astype(str).str.replace(r"\D", "", regex=True)
+            hit10 = s.str.startswith(hs10) if len(hs10) >= 10 else None
+            hit6 = s.str.startswith(hs6)
+            tmp = df[hit6] if hit6 is not None else None
+            if hit10 is not None and hit10.any():
+                tmp = df[hit10]
+            if tmp is not None and len(tmp) > 0:
+                candidate_rows = tmp
+                break
+
+        if candidate_rows is None or len(candidate_rows) == 0:
+            # HS 매칭이 안 되면 df 앞부분 일부만 보내서 “어떤 컬럼이 HS/세율인지”만 추론하게
+            sample_df = df.head(50)
+        else:
+            sample_df = candidate_rows.head(50)
+
+        # OpenAI 입력용 JSON records (작게)
+        records = sample_df.fillna("").to_dict(orient="records")
+
+        prompt = f"""
+너는 관세표(스프레드시트)에서 HS 코드에 해당하는 관세율(%)을 "표 안에서" 찾아내는 도우미다.
+절대로 추측하지 말고, 주어진 records 안에서 근거가 있을 때만 답해라.
+
+목표:
+- 국가: {country}
+- HS code: {hs_digits} (우선 {hs10} 또는 {hs6}로 시작하는 행을 찾기)
+
+주어진 데이터(records)에서:
+1) HS 코드가 들어있는 컬럼을 찾고
+2) 세율/관세율이 들어있는 컬럼을 찾고
+3) 해당 행의 세율 값을 읽어서
+
+아래 JSON만 출력해라:
+{{
+  "found": true/false,
+  "rate_percent": number or null,
+  "matched_hs": "...." or "",
+  "rate_column": "...." or "",
+  "notes": "...."
+}}
+
+records:
+{json.dumps(records, ensure_ascii=False)}
+"""
+
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            temperature=0.0,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        raw = resp.choices[0].message.content
+        block = re.search(r"\{[\s\S]*\}", raw)
+        if not block:
+            return None
+
+        data = json.loads(block.group())
+        if not data.get("found"):
+            return None
+
+        rate_percent = data.get("rate_percent")
+        if rate_percent is None:
+            return None
+
+        # 8.0 -> 0.08
+        return float(rate_percent) / 100.0
+
+    except:
+        return None
+
 
 # =============================================================================
 # PART 4 — Streamlit 계산 UI
@@ -755,14 +1230,45 @@ def calculate_best_scenario_part4():
     price = st.session_state.input_price
     qty = st.session_state.input_qty
     weight = st.session_state.input_weight
-    flow = st.session_state.trade_flow
     df_tariff = st.session_state.df_tariff
     hs_code = st.session_state.hs_code_global
+    country = st.session_state.get("detected_country", "") or ""
+
+    # ✅ 핵심: 수출이어도 도착국 수입관세를 반영할지 선택
+    apply_dest_duty = st.checkbox(
+        "수출(Export)에도 도착국 수입관세(Import Duty)를 반영하기",
+        value=True,
+        help="기존 로직은 import일 때만 관세를 부과합니다. 수출 시에도 도착국 수입관세를 포함하려면 체크하세요."
+    )
 
     # ----------------------------------------------------------
-    # 관세율 자동 추출
+    # 관세율 결정 로직 (절대 오류 안나게)
+    # 우선순위:
+    # 1) 사용자가 수동 관세 입력했으면 그 값
+    # 2) 파일에서 추출
+    # 3) OpenAI로 파일(records)에서 추출
     # ----------------------------------------------------------
-    duty_rate = extract_tariff_rate(df_tariff, hs_code)
+    duty_rate = 0.0
+    try:
+        manual_rate = float(st.session_state.get("manual_duty_rate", 0.0) or 0.0)
+        if manual_rate > 0:
+            duty_rate = manual_rate
+            source = "MANUAL"
+        else:
+            # 2) 파일 기반
+            duty_rate = extract_tariff_rate(df_tariff, hs_code)
+            source = "FILE"
+
+            # 3) 파일에서 못 찾았으면 OpenAI로 '파일 내' 검색
+            if duty_rate == 0.0:
+                ai_rate = extract_tariff_rate_with_openai(df_tariff, hs_code, country=country)
+                if ai_rate is not None and ai_rate > 0:
+                    duty_rate = ai_rate
+                    source = "OPENAI_FILE_PARSE"
+    except:
+        duty_rate = 0.0
+        source = "UNKNOWN"
+
     st.info(f"📘 적용 관세율: **{duty_rate * 100:.2f}%**")
 
     # ----------------------------------------------------------
@@ -783,44 +1289,24 @@ def calculate_best_scenario_part4():
     }
 
     col1, col2 = st.columns([1.7, 1])
-
     with col1:
-        selected_group = st.selectbox(
-            "📋 인코텀즈 그룹 선택",
-            list(INCOTERMS_GROUPS.keys())
-        )
+        selected_group = st.selectbox("📋 인코텀즈 그룹 선택", list(INCOTERMS_GROUPS.keys()))
         st.caption(GROUP_DESC[selected_group])
 
     group_codes = INCOTERMS_GROUPS[selected_group]
-
     with col2:
         selected_inco = st.selectbox("📌 세부 Incoterms 선택", group_codes)
 
     transport_filter = st.selectbox("🚢 운송 방식", ["전체", "SEA", "AIR"])
-
     st.divider()
 
-    # -------------------------------------------------------------------------
-    # Freight 목록
-    # 실 서비스에서는 freight DB 연결하면 자동 대체됨
-    # -------------------------------------------------------------------------
-    sea_list = [
-        ("부산항", "20FT", 850),
-        ("부산항", "40FT", 1050),
-    ]
-
-    air_list = [
-        ("인천공항", "300KG", weight * 4.7),
-        ("인천공항", "500KG", weight * 4.3),
-    ]
+    # Freight 목록 (샘플)
+    sea_list = [("부산항", "20FT", 850), ("부산항", "40FT", 1050)]
+    air_list = [("인천공항", "300KG", float(weight) * 4.7), ("인천공항", "500KG", float(weight) * 4.3)]
 
     ALL_INCOTERMS = sum(INCOTERMS_GROUPS.values(), [])
-
     rows = []
 
-    # -------------------------------------------------------------------------
-    # 전체 인코텀즈 계산
-    # -------------------------------------------------------------------------
     for mode, f_list in [("SEA", sea_list), ("AIR", air_list)]:
         for dep, unit, freight in f_list:
             insurance = compute_insurance_value(
@@ -832,21 +1318,12 @@ def calculate_best_scenario_part4():
             for inco in ALL_INCOTERMS:
                 r = calculate_trade_cost_row(
                     price, qty, freight, insurance,
-                    inco, duty_rate, flow
+                    inco, duty_rate, apply_dest_duty
                 )
-                r.update({
-                    "운송": mode,
-                    "출발지": dep,
-                    "단위": unit,
-                    "Incoterms": inco,
-                })
+                r.update({"운송": mode, "출발지": dep, "단위": unit, "Incoterms": inco})
                 rows.append(r)
 
     df_all = pd.DataFrame(rows)
-
-    # -------------------------------------------------------------------------
-    # 필터링
-    # -------------------------------------------------------------------------
     df_filtered = df_all[df_all["Incoterms"] == selected_inco]
 
     if transport_filter != "전체":
@@ -855,13 +1332,8 @@ def calculate_best_scenario_part4():
     df_filtered = df_filtered.sort_values("Total Landing Cost")
 
     st.session_state.df_results = df_filtered
-    st.session_state.best_scenario = (
-        df_filtered.iloc[0].to_dict() if not df_filtered.empty else None
-    )
+    st.session_state.best_scenario = df_filtered.iloc[0].to_dict() if not df_filtered.empty else None
 
-    # -------------------------------------------------------------------------
-    # 출력
-    # -------------------------------------------------------------------------
     if df_filtered.empty:
         st.error("❌ 해당 조건의 계산 결과가 없습니다.")
         return
@@ -879,7 +1351,6 @@ def calculate_best_scenario_part4():
     )
 
     st.markdown("### 💰 비용 구성")
-
     cols = st.columns(6)
     cols[0].metric("Goods", f"${best['Goods Value']:,}")
     cols[1].metric("Freight", f"${best['Freight']:,}")
@@ -890,15 +1361,12 @@ def calculate_best_scenario_part4():
 
     st.divider()
     st.subheader("📊 세부 비교표")
-
     st.dataframe(df_filtered, use_container_width=True)
 
     st.divider()
     with st.expander("📘 전체 Incoterms 11개 비교표", expanded=False):
-        st.dataframe(
-            df_all.sort_values("Total Landing Cost"),
-            use_container_width=True
-        )
+        st.dataframe(df_all.sort_values("Total Landing Cost"), use_container_width=True)
+
 
 # =============================================================================
 # PART 5 — Proforma Invoice (PI) Excel 자동 생성기
