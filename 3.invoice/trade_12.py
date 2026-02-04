@@ -31,12 +31,6 @@ def get_tariff_file_by_country(country: str):
         print("❌ 폴더를 찾을 수 없습니다.") 
         return None
 
-    # ... (이 아래 코드는 기존과 동일) ...
-    files = [f for f in os.listdir(folder) if f.lower().endswith((".xls", ".xlsx", ".csv"))]
-    if not files:
-        return None
-    
-    # ... (나머지 로직 그대로 유지) ...
 
 # -----------------------------------------------------------------------------
 # STREAMLIT 기본 설정 (절대 한 번만!)
