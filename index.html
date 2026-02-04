@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trade AI Automation</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/element_sdk.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -63,159 +62,100 @@
       animation-delay: -3s;
     }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full">
-  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 50%, #eef1f5 100%);"><!-- Decorative Elements -->
+  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 50%, #eef1f5 100%);">
+   <!-- Decorative Elements -->
    <div class="fixed top-20 left-10 w-64 h-64 rounded-full opacity-30 floating" style="background: radial-gradient(circle, #e8ecf1 0%, transparent 70%);"></div>
    <div class="fixed bottom-20 right-10 w-80 h-80 rounded-full opacity-25 floating-delay" style="background: radial-gradient(circle, #dde3eb 0%, transparent 70%);"></div>
    <div class="fixed top-1/2 left-1/4 w-40 h-40 rounded-full opacity-20" style="background: radial-gradient(circle, #d4dbe5 0%, transparent 70%);"></div>
-   <div class="relative z-10 min-h-full flex flex-col items-center justify-center px-6 py-12"><!-- Header Section -->
+   
+   <div class="relative z-10 min-h-full flex flex-col items-center justify-center px-6 py-12">
+    <!-- Header Section -->
     <header class="text-center mb-16">
      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
-      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
      </div>
      <h1 id="main-title" class="text-4xl md:text-5xl font-bold mb-4" style="color: #2d3748; letter-spacing: -0.02em;">무역 AI 자동화</h1>
      <p id="sub-title" class="text-lg md:text-xl font-light" style="color: #718096;">스마트한 무역 업무의 시작</p>
-    </header><!-- Navigation Buttons Grid -->
+    </header>
+    
+    <!-- Navigation Buttons Grid -->
     <nav class="w-full max-w-4xl">
-     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6"><!-- 설명서 Button --> <button id="btn-manual" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+      <!-- 설명서 Button -->
+      <button id="btn-manual" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
        <div class="icon-container w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
-       </div><span class="btn-text text-base font-semibold" style="color: #4a5568;">설명서</span> <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Manual</span> </button> <!-- 메일 Button --> <button id="btn-mail" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+       </div>
+       <span class="btn-text text-base font-semibold" style="color: #4a5568;">설명서</span>
+       <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Manual</span>
+      </button>
+      
+      <!-- 메일 Button -->
+      <button id="btn-mail" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
        <div class="icon-container w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-       </div><span class="btn-text text-base font-semibold" style="color: #4a5568;">메일</span> <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">E-mail</span> </button> <!-- 선박 Button --> <button id="btn-ship" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+       </div>
+       <span class="btn-text text-base font-semibold" style="color: #4a5568;">메일</span>
+       <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">E-mail</span>
+      </button>
+      
+      <!-- 선박 Button -->
+      <button id="btn-ship" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
        <div class="icon-container w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 17h18M5 17l2-7h10l2 7M7 10V6a1 1 0 011-1h8a1 1 0 011 1v4M12 3v2" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 20c1.5-1 3-1.5 4-1.5s2.5.5 4 1.5c1.5-1 2.5-1.5 4-1.5s2.5.5 4 1.5" />
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 17h18M5 17l2-7h10l2 7M7 10V6a1 1 0 011-1h8a1 1 0 011 1v4M12 3v2" />
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 20c1.5-1 3-1.5 4-1.5s2.5.5 4 1.5c1.5-1 2.5-1.5 4-1.5s2.5.5 4 1.5" />
         </svg>
-       </div><span class="btn-text text-base font-semibold" style="color: #4a5568;">선박</span> <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Vessel</span> </button> <!-- 견적송장 Button --> <button id="btn-invoice" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+       </div>
+       <span class="btn-text text-base font-semibold" style="color: #4a5568;">선박</span>
+       <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Vessel</span>
+      </button>
+      
+      <!-- 견적송장 Button -->
+      <button id="btn-invoice" class="nav-button group flex flex-col items-center justify-center p-8 rounded-3xl cursor-pointer" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
        <div class="icon-container w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
         </svg>
-       </div><span class="btn-text text-base font-semibold" style="color: #4a5568;">견적송장</span> <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Invoice</span> </button>
+       </div>
+       <span class="btn-text text-base font-semibold" style="color: #4a5568;">견적송장</span>
+       <span class="text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #a0aec0;">Invoice</span>
+      </button>
      </div>
-    </nav><!-- Footer -->
+    </nav>
+    
+    <!-- Footer -->
     <footer class="mt-16 text-center">
      <p class="text-sm" style="color: #a0aec0;">AI로 더 빠르고 정확한 무역 업무를 경험하세요</p>
     </footer>
    </div>
   </div>
+  
   <script>
-    const defaultConfig = {
-      main_title: '무역 AI 자동화',
-      sub_title: '스마트한 무역 업무의 시작',
-      button_1_text: '설명서',
-      button_2_text: '메일',
-      button_3_text: '선박',
-      button_4_text: '견적송장',
-      background_color: '#fafbfc',
-      surface_color: '#ffffff',
-      text_color: '#2d3748',
-      primary_action_color: '#667eea',
-      secondary_text_color: '#718096'
-    };
-
-    async function onConfigChange(config) {
-      document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
-      document.getElementById('sub-title').textContent = config.sub_title || defaultConfig.sub_title;
-      
-      const btnTexts = document.querySelectorAll('.btn-text');
-      btnTexts[0].textContent = config.button_1_text || defaultConfig.button_1_text;
-      btnTexts[1].textContent = config.button_2_text || defaultConfig.button_2_text;
-      btnTexts[2].textContent = config.button_3_text || defaultConfig.button_3_text;
-      btnTexts[3].textContent = config.button_4_text || defaultConfig.button_4_text;
-
-      // Apply colors
-      const bgColor = config.background_color || defaultConfig.background_color;
-      const textColor = config.text_color || defaultConfig.text_color;
-      const secondaryText = config.secondary_text_color || defaultConfig.secondary_text_color;
-      
-      document.getElementById('main-title').style.color = textColor;
-      document.getElementById('sub-title').style.color = secondaryText;
-      
-      btnTexts.forEach(btn => {
-        btn.style.color = textColor;
-      });
-    }
-
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [
-          {
-            get: () => config.background_color || defaultConfig.background_color,
-            set: (value) => { config.background_color = value; window.elementSdk.setConfig({ background_color: value }); }
-          },
-          {
-            get: () => config.surface_color || defaultConfig.surface_color,
-            set: (value) => { config.surface_color = value; window.elementSdk.setConfig({ surface_color: value }); }
-          },
-          {
-            get: () => config.text_color || defaultConfig.text_color,
-            set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
-          },
-          {
-            get: () => config.primary_action_color || defaultConfig.primary_action_color,
-            set: (value) => { config.primary_action_color = value; window.elementSdk.setConfig({ primary_action_color: value }); }
-          },
-          {
-            get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
-            set: (value) => { config.secondary_text_color = value; window.elementSdk.setConfig({ secondary_text_color: value }); }
-          }
-        ],
-        borderables: [],
-        fontEditable: {
-          get: () => config.font_family || 'Noto Sans KR',
-          set: (value) => { config.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
-        },
-        fontSizeable: {
-          get: () => config.font_size || 16,
-          set: (value) => { config.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
-        }
-      };
-    }
-
-    function mapToEditPanelValues(config) {
-      return new Map([
-        ['main_title', config.main_title || defaultConfig.main_title],
-        ['sub_title', config.sub_title || defaultConfig.sub_title],
-        ['button_1_text', config.button_1_text || defaultConfig.button_1_text],
-        ['button_2_text', config.button_2_text || defaultConfig.button_2_text],
-        ['button_3_text', config.button_3_text || defaultConfig.button_3_text],
-        ['button_4_text', config.button_4_text || defaultConfig.button_4_text]
-      ]);
-    }
-
     // Button click handlers
     document.getElementById('btn-manual').addEventListener('click', () => {
       console.log('설명서 페이지로 이동');
     });
     
     document.getElementById('btn-mail').addEventListener('click', () => {
-      console.log('메일 페이지로 이동');
+      window.open('https://teamproject24-ambtlgqgwddxadwmew2dnp.streamlit.app', '_blank');
     });
     
     document.getElementById('btn-ship').addEventListener('click', () => {
-      console.log('선박 페이지로 이동');
+      window.open('https://teamproject24-8wruabbmaabkhxsqt7xbhj.streamlit.app', '_blank');
     });
     
     document.getElementById('btn-invoice').addEventListener('click', () => {
-      console.log('견적송장 페이지로 이동');
+      window.open('https://teamproject24-s8s8u7hvh4rbbwgtwkthex.streamlit.app', '_blank');
     });
-
-    // Initialize SDK
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c863d44b427bcc4',t:'MTc3MDE2NjkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ </body>
 </html>
