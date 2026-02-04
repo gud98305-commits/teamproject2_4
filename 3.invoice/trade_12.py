@@ -17,19 +17,76 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 # -----------------------------------------------------------------------------
+# 관세파일 자동 선택 (경로 에러 해결 버전)
+# -----------------------------------------------------------------------------
 def get_tariff_file_by_country(country: str):
-    # [수정 전] folder = "tariff_files"  <-- 이게 문제였음
-
-    # [수정 후] 현재 실행 중인 파일(trade_12.py)의 위치를 기준으로 경로를 잡음
+    # [핵심] 현재 파일(trade_12.py)이 있는 위치를 기준으로 'tariff_files' 폴더를 찾습니다.
     current_dir = os.path.dirname(os.path.abspath(__file__))
     folder = os.path.join(current_dir, "tariff_files")
 
-    # (디버깅용) 실제 어디를 찾고 있는지 확인해보세요
-    print(f"📂 폴더 찾는 경로: {folder}")
-
+    # 폴더가 진짜 없는 경우 (디버깅용 에러 메시지)
     if not os.path.exists(folder):
-        print("❌ 폴더를 찾을 수 없습니다.")
+        print(f"❌ 폴더를 찾을 수 없습니다: {folder}")
         return None
+
+    files = [f for f in os.listdir(folder) if f.lower().endswith((".xls", ".xlsx", ".csv"))]
+    if not files:
+        return None
+
+    c = country.lower()
+
+    # 1) 파일명에 영어 국가명이 포함된 경우 (예: Japan)
+    direct = [f for f in files if c in f.lower()]
+    if direct:
+        return os.path.join(folder, direct[0])
+
+    # 2) 한국어 국가명 변환 검색 (AI)
+    if client:
+        prompt = f"""
+국가 '{country}'의 한국어/영문/약어 표현을 리스트로 출력:
+예: {{"names":["Japan","일본","JP","Nippon"]}}
+"""
+        try:
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                temperature=0.0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = resp.choices[0].message.content
+            block = re.search(r"\{[\s\S]*\}", raw)
+            if block:
+                names = json.loads(block.group()).get("names", [])
+                for n in names:
+                    ln = n.lower()
+                    for f in files:
+                        if ln in f.lower():
+                            return os.path.join(folder, f)
+        except:
+            pass
+
+    # 3) 최종 안전장치 — AI에게 파일 목록 중 직접 선택 요청
+    if client:
+        prompt = f"""
+아래 파일 목록 중 '{country}' 관세파일을 하나 선택해 JSON으로 출력:
+목록: {files}
+예: {{"file":"Japan_Tariff.xlsx"}}
+"""
+        try:
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                temperature=0.0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = resp.choices[0].message.content
+            block = re.search(r"\{[\s\S]*\}", raw)
+            if block:
+                fname = json.loads(block.group()).get("file")
+                if fname in files:
+                    return os.path.join(folder, fname)
+        except:
+            pass
+
+    return None
 
 
 # -----------------------------------------------------------------------------
