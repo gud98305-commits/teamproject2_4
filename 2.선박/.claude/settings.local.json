@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command:*)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(wc:*)",
+      "Bash(pip install:*)",
+      "WebFetch(domain:ofac.treasury.gov)",
+      "WebFetch(domain:www.treasury.gov)"
+    ]
+  }
+}

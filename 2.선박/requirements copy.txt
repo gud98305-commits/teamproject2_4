@@ -1,0 +1,17 @@
+# --- Core UI / Server ---
+streamlit>=1.35.0
+flask>=3.0.0
+
+# --- HTTP & Env ---
+requests>=2.31.0
+python-dotenv>=1.0.1
+
+# --- Map & Visualization ---
+folium>=0.16.0
+streamlit-folium>=0.20.0
+
+# --- Document Generation ---
+reportlab>=4.2.0
+
+# materials
+yfinance>=0.2.40
