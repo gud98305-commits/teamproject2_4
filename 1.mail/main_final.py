@@ -25,27 +25,25 @@ import logging
 import asyncio
 import json
 from datetime import datetime, timedelta
-
 import streamlit as st
 
 # ==============================================================================
-# [핵심 수정] Streamlit Cloud 배포를 위한 파일 생성 및 검증 코드
+# [핵심 수정] 파일 생성 코드 (이름 통일함!)
 # ==============================================================================
-# 1. 시크릿 키가 있는지 확인
-if "CREDENTIALS_JSON" in st.secrets:
-    secret_content = st.secrets["CREDENTIALS_JSON"]
-    
-    # 2. [추가된 안전장치] 내용이 진짜 올바른 JSON인지 미리 검사합니다.
-    try:
-        json.loads(secret_content) # 여기서 테스트!
-    except json.JSONDecodeError as e:
-        # JSON 형식이 틀렸다면, 에러 내용을 화면에 띄우고 멈춥니다.
-        st.error(f"🚨 **치명적 오류**: Streamlit Secrets에 입력한 내용이 올바른 JSON 형식이 아닙니다.")
-        st.error(f"구체적인 원인: {e}")
-        st.warning("팁: Settings > Secrets 메뉴에서 따옴표(\")나 괄호({})가 빠진 곳이 없는지 확인해주세요.")
-        st.stop() # 더 이상 실행하지 않고 여기서 중단
+# 시크릿(credentials.json)을 읽어서 -> 파일(credentials.json)로 만듭니다.
+# 대문자/소문자 신경 쓸 필요 없이 똑같이 맞췄습니다.
 
-    # 3. 검사를 통과했다면 안전하게 파일을 생성합니다.
+if "credentials.json" in st.secrets:
+    secret_content = st.secrets["credentials.json"]
+    
+    # JSON 형식이 맞는지 검사 (안전장치)
+    try:
+        json.loads(secret_content)
+    except json.JSONDecodeError as e:
+        st.error(f"🚨 에러: 시크릿 내용이 깨졌습니다. 확인해주세요.\n{e}")
+        st.stop()
+
+    # 파일 생성
     with open("credentials.json", "w") as f:
         f.write(secret_content)
 
