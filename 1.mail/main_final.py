@@ -24,7 +24,7 @@ import urllib.parse
 import logging
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import streamlit as st
 
 # ==============================================================================
@@ -148,12 +148,19 @@ def fetch_emails_from_gmail(service, max_results=50, date_range=None, mode="개�
         return []
     
     query = "is:unread"
-    
-    if mode != "개수 기준" and date_range and len(date_range) == 2:
-        start_date, end_date = date_range
-        q_after = start_date.strftime('%Y/%m/%d')
-        q_before = (end_date + timedelta(days=1)).strftime('%Y/%m/%d')
-        query += f" after:{q_after} before:{q_before}"
+
+    if mode != "개수 기준" and date_range and len(date_range) >= 1:
+        # 날짜 1개만 선택된 경우(종료일 미선택) → 해당 날짜 하루만 조회
+        if len(date_range) == 2:
+            start_date, end_date = date_range
+        else:
+            start_date = end_date = date_range[0]
+
+        # KST(UTC+9) 자정 기준 epoch 초로 변환 → UTC 기반 오프셋 문제 방지
+        KST = timezone(timedelta(hours=9))
+        start_epoch = int(datetime(start_date.year, start_date.month, start_date.day, tzinfo=KST).timestamp())
+        end_epoch = int(datetime(end_date.year, end_date.month, end_date.day, tzinfo=KST).timestamp()) + 86400
+        query += f" after:{start_epoch} before:{end_epoch}"
     
     fetch_limit = 500 if mode == "날짜 기준" else max_results
     
@@ -415,6 +422,8 @@ def main():
                 value=(datetime.now().date() - timedelta(days=7), datetime.now().date()),
                 format="YYYY-MM-DD"
             )
+            if len(selected_period) == 1:
+                st.caption("ℹ️ 종료 날짜 미선택 시 시작일 하루만 조회합니다.")
         else:
             selected_period = None
         
