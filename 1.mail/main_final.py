@@ -111,7 +111,12 @@ def get_gmail_service():
     
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except Exception as e:
+                logger.error(f"Token refresh failed: {e}")
+                st.error(f"⚠️ Gmail 토큰 갱신 실패: {e}")
+                return None
         else:
             if not os.path.exists('credentials.json'):
                 return None
@@ -189,6 +194,7 @@ def fetch_emails_from_gmail(service, max_results=50, date_range=None, mode="개�
         
     except Exception as e:
         logger.error(f"Fetch error: {e}")
+        st.error(f"❌ 메일 수집 중 오류 발생: {e}")
         return []
 
 
@@ -420,10 +426,17 @@ def main():
 
             with st.spinner("메일 수집 및 분석 중..."):
                 if not GMAIL_AVAILABLE:
+                    st.warning("⚠️ Gmail API 라이브러리가 설치되지 않아 데모 데이터를 표시합니다.")
                     emails = get_demo_emails()
                 else:
                     service = get_gmail_service()
-                    emails = fetch_emails_from_gmail(service, analysis_limit, selected_period, collect_mode) if service else get_demo_emails()
+                    if service:
+                        emails = fetch_emails_from_gmail(service, analysis_limit, selected_period, collect_mode)
+                        if not emails:
+                            st.warning("⚠️ 조건에 맞는 읽지 않은 메일이 없습니다.")
+                    else:
+                        st.error("❌ Gmail 연결 실패 - 데모 데이터를 표시합니다. 토큰을 확인해주세요.")
+                        emails = get_demo_emails()
                 
                 if emails:
                     progress = st.progress(0)
