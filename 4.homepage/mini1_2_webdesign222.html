@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade AX Solution - 첫 수출 기업을 위한 데이터 기반 무역 파트너</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Hero Video Background Effect */
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* GIF 슬라이드쇼 배경 */
+        .hero-slideshow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hero-slideshow .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .hero-slideshow .slide.active {
+            opacity: 1;
+        }
+
+        .hero-slideshow .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 어두운 오버레이 */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        /* 슬라이드 인디케이터 */
+        .slide-indicators {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 12px;
+        }
+
+        .slide-indicators .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicators .dot:hover {
+            background: rgba(255,255,255,0.7);
+        }
+
+        .slide-indicators .dot.active {
+            background: #fff;
+            transform: scale(1.2);
+        }
+
+        /* Smooth Scroll Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Feature Card Hover Effects */
+        .feature-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        /* Number Counter Animation */
+        .counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Step Number Circle */
+        .step-circle {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35); }
+            50% { box-shadow: 0 8px 35px rgba(59, 130, 246, 0.5); }
+        }
+
+        /* Timeline Connector */
+        .timeline-line {
+            position: relative;
+        }
+
+        .timeline-line::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, transparent);
+            transform: translateY(-50%);
+        }
+
+        /* Nav Scroll Effect */
+        .nav-scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Parallax Effect */
+        .parallax {
+            transform: translateY(0);
+            transition: transform 0.5s ease-out;
+        }
+
+        /* Stats Animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-animate {
+            animation: countUp 0.8s ease-out forwards;
+        }
+
+        /* Benefit Card Hover */
+        .benefit-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            background: #ffffff;
+        }
+
+        /* Icon Glow Effect */
+        .icon-glow {
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+        }
+
+        /* Responsive Video Container */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="h-full overflow-auto bg-white">
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+        <div class="max-w-7xl mx-auto px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-white">Trade AX</span>
+                </div>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="text-white/90 hover:text-white transition-colors text-sm font-medium">솔루션</a>
+                    <a href="#workflow" class="text-white/90 hover:text-white transition-colors text-sm font-medium">워크플로우</a>
+                    <a href="#benefits" class="text-white/90 hover:text-white transition-colors text-sm font-medium">혜택</a>
+                    <a href="#contact" class="text-white/90 hover:text-white transition-colors text-sm font-medium">문의하기</a>
+                    <button class="bg-white text-blue-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all">
+                        무료 체험
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section min-h-screen flex items-center relative">
+        <!-- GIF 슬라이드쇼 배경 -->
+        <div class="hero-slideshow">
+            <div class="slide active">
+                <img src="Global Economy Africa GIF by World Bank.gif" alt="Global Economy">
+            </div>
+            <div class="slide">
+                <img src="Orange Drone GIF by Hapag-Lloyd AG.gif" alt="Drone Delivery">
+            </div>
+            <div class="slide">
+                <img src="Ship Shipping GIF by World Bank.gif" alt="Ship Shipping">
+            </div>
+            <div class="slide">
+                <img src="Ship River GIF by World Bank.gif" alt="Ship River">
+            </div>
+        </div>
+
+        <!-- 어두운 오버레이 -->
+        <div class="hero-overlay"></div>
+
+        <!-- 슬라이드 인디케이터 -->
+        <div class="slide-indicators">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Left Content -->
+                <div class="text-white space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                        <span class="text-sm font-medium">무역의 새로운 표준</span>
+                    </div>
+
+                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                        첫 수출 기업을 위한<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                            데이터 기반
+                        </span><br>
+                        무역 파트너
+                    </h1>
+
+                    <p class="text-xl md:text-2xl text-white/80 leading-relaxed">
+                        복잡한 시황 분석부터 서류 작성까지,<br>
+                        무역의 시작을 체계적으로 지원합니다.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="btn-primary text-white px-8 py-4 rounded-xl text-lg font-semibold relative z-10">
+                            솔루션 체험하기
+                            <svg class="inline-block w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </button>
+                        <button class="px-8 py-4 rounded-xl text-lg font-semibold text-white border-2 border-white/30 hover:bg-white/10 transition-all backdrop-blur-sm">
+                            데모 영상 보기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Visual -->
+                <div class="relative float">
+                    <div class="relative z-10">
+                        <div class="aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
+                            <div class="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-xl flex items-center justify-center">
+                                <svg class="w-32 h-32 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="absolute -top-10 -left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 text-white/60 animate-bounce">
+            <span class="text-sm">Scroll</span>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-32 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-40">
+            <div class="absolute top-20 right-20 w-96 h-96 bg-blue-200 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 left-20 w-96 h-96 bg-cyan-200 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <!-- Section Header -->
+            <div class="text-center mb-20 reveal">
+                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-100 text-blue-700 mb-6">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span class="text-sm font-semibold">3-Step Workflow</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                    체계적인 <span class="gradient-text">무역 워크플로우</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    시황 분석부터 서류 작성까지, 단계별로 설계된 솔루션으로<br>
+                    첫 수출의 복잡함을 해결합니다.
+                </p>
+            </div>
+
+            <!-- Feature Cards - 트레드링스 스타일 -->
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1: 공급망 시황 관제 -->
+                <div class="feature-card rounded-3xl overflow-hidden reveal" style="animation-delay: 0.1s">
+                    <div class="p-8">
+                        <div class="space-y-4">
+                            <h3 class="text-2xl font-bold text-gray-900">
+                                공급망 시황 관제
+                            </h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                지도 위에서 뉴스, 리스크, 물류 흐름을 한눈에 시각화하여 시장 조사 시간을 절약합니다.
+                            </p>
+                            <p class="text-blue-600 font-medium cursor-pointer hover:text-blue-700 transition-colors">
+                                바로가기 →
+                            </p>
+                        </div>
+                    </div>
+                    <div class="w-full h-48 overflow-hidden">
+                        <img src="img_tracking.png" alt="공급망 시황 관제 이미지" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- Card 2: AI 인콰이어리 분석 -->
+                <div class="feature-card rounded-3xl overflow-hidden reveal" style="animation-delay: 0.2s">
+                    <div class="p-8">
+                        <div class="space-y-4">
+                            <h3 class="text-2xl font-bold text-gray-900">
+                                AI 인콰이어리 분석
+                            </h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                수신된 바이어 메일의 구매 의도를 분석하여 핵심 비즈니스 기회를 선별합니다.
+                            </p>
+                            <p class="text-blue-600 font-medium cursor-pointer hover:text-blue-700 transition-colors">
+                                바로가기 →
+                            </p>
+                        </div>
+                    </div>
+                    <div class="w-full h-48 overflow-hidden">
+                        <img src="img_estimate.png" alt="AI 인콰이어리 분석 이미지" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- Card 3: 수출입 서류 자동화 -->
+                <div class="feature-card rounded-3xl overflow-hidden reveal" style="animation-delay: 0.3s">
+                    <div class="p-8">
+                        <div class="space-y-4">
+                            <h3 class="text-2xl font-bold text-gray-900">
+                                수출입 서류 자동화
+                            </h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                인코텀즈 기반 가격 계산 및 PI 생성 과정을 자동화하여 즉시 실무에 대응합니다.
+                            </p>
+                            <p class="text-blue-600 font-medium cursor-pointer hover:text-blue-700 transition-colors">
+                                바로가기 →
+                            </p>
+                        </div>
+                    </div>
+                    <div class="w-full h-48 overflow-hidden">
+                        <img src="premium_photo-1661559046208-0cef1cbf7b0b.png" alt="수출입 서류 자동화 이미지" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-20 reveal">
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                    Trade AX와 함께라면
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    복잡한 무역 실무를 체계적으로 해결하는 강력한 솔루션
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="benefit-card rounded-2xl p-8 text-center reveal" style="animation-delay: 0.1s">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <span class="text-4xl">🌍</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">글로벌 시황 파악</h3>
+                    <p class="text-gray-600">실시간 데이터로 시장을 한눈에</p>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-8 text-center reveal" style="animation-delay: 0.2s">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <span class="text-4xl">🤖</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">AI 기반 분석</h3>
+                    <p class="text-gray-600">스마트한 비즈니스 의사결정</p>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-8 text-center reveal" style="animation-delay: 0.3s">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <span class="text-4xl">⚡</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">업무 자동화</h3>
+                    <p class="text-gray-600">반복 작업에서 벗어나기</p>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-8 text-center reveal" style="animation-delay: 0.4s">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <span class="text-4xl">📊</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">체계적 관리</h3>
+                    <p class="text-gray-600">모든 무역 프로세스 통합</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contact" class="py-32 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 relative overflow-hidden">
+
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10 reveal">
+            <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+                무역의 첫 걸음,<br>
+                Trade AX와 함께
+            </h2>
+
+            <p class="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
+                복잡한 무역 실무, 이제 체계적인 시스템으로 해결하세요.<br>
+                14일 무료 체험으로 직접 경험해보세요.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-blue-600 px-10 py-4 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-all shadow-xl">
+                    무료 체험 시작하기
+                </button>
+                <button class="px-10 py-4 rounded-xl text-lg font-semibold text-white border-2 border-white/30 hover:bg-white/10 transition-all">
+                    상담 문의하기
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-white font-bold text-xl">Trade AX Solution</span>
+                </div>
+
+                <div class="flex items-center gap-8 text-gray-400">
+                    <a href="#" class="hover:text-white transition-colors">이용약관</a>
+                    <a href="#" class="hover:text-white transition-colors">개인정보처리방침</a>
+                    <a href="#" class="hover:text-white transition-colors">고객센터</a>
+                </div>
+
+                <p class="text-gray-500">© 2025 Trade AX Solution. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('nav-scrolled');
+                navbar.querySelector('span').classList.remove('text-white');
+                navbar.querySelector('span').classList.add('text-gray-900');
+                navbar.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('text-white/90', 'hover:text-white');
+                    a.classList.add('text-gray-700', 'hover:text-gray-900');
+                });
+            } else {
+                navbar.classList.remove('nav-scrolled');
+                navbar.querySelector('span').classList.remove('text-gray-900');
+                navbar.querySelector('span').classList.add('text-white');
+                navbar.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('text-gray-700', 'hover:text-gray-900');
+                    a.classList.add('text-white/90', 'hover:text-white');
+                });
+            }
+        });
+
+        // Scroll Reveal Animation
+        const reveals = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        reveals.forEach(reveal => {
+            revealObserver.observe(reveal);
+        });
+
+        // Parallax Effect
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelectorAll('.parallax');
+            parallax.forEach(el => {
+                const speed = el.dataset.speed || 0.5;
+                el.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // GIF 슬라이드쇼 자동 전환
+        const slides = document.querySelectorAll('.hero-slideshow .slide');
+        const dots = document.querySelectorAll('.slide-indicators .dot');
+        let currentSlide = 0;
+        const slideInterval = 5000; // 5초마다 전환
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                dots[i].classList.remove('active');
+            });
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // 자동 슬라이드
+        let autoSlide = setInterval(nextSlide, slideInterval);
+
+        // 인디케이터 클릭 이벤트
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+                clearInterval(autoSlide);
+                autoSlide = setInterval(nextSlide, slideInterval);
+            });
+        });
+    </script>
+</body>
+</html>
