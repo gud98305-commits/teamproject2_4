@@ -20,6 +20,7 @@ AI Trade Assistant v2.0 - Intelligence Decision Support System
 
 import os
 import re
+import base64
 import urllib.parse
 import logging
 import asyncio
@@ -98,6 +99,35 @@ logger = logging.getLogger("TradeAssistant")
 # ==============================================================================
 # Gmail API Functions
 # ==============================================================================
+def extract_body_text(payload):
+    """Gmail 메시지 payload에서 본문 텍스트 추출 (text/plain 우선)"""
+    if 'parts' in payload:
+        for part in payload['parts']:
+            if part['mimeType'] == 'text/plain':
+                data = part.get('body', {}).get('data', '')
+                if data:
+                    return base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
+            elif part['mimeType'].startswith('multipart/'):
+                result = extract_body_text(part)
+                if result:
+                    return result
+    else:
+        data = payload.get('body', {}).get('data', '')
+        if data:
+            return base64.urlsafe_b64decode(data).decode('utf-8', errors='ignore')
+    return ''
+
+
+def has_real_attachment(payload):
+    """실제 첨부파일 존재 여부 (multipart 구조 ≠ 첨부파일)"""
+    for part in payload.get('parts', []):
+        if part.get('filename'):
+            return True
+        if part['mimeType'].startswith('multipart/') and has_real_attachment(part):
+            return True
+    return False
+
+
 def get_gmail_service():
     """Gmail API 서비스 생성"""
     if not GMAIL_AVAILABLE:
@@ -185,14 +215,17 @@ def fetch_emails_from_gmail(service, max_results=50, date_range=None, mode="개�
             email_match = re.search(r'<(.+?)>', sender)
             sender_email = email_match.group(1) if email_match else sender
             
+            # 본문 전체 추출 (snippet 대신 실제 body)
+            body_text = extract_body_text(m['payload']) or m.get('snippet', '')
+
             emails.append({
                 'id': msg['id'],
                 'subject': subject,
                 'sender': sender,
                 'sender_email': sender_email,
-                'body': m.get('snippet', ''),
+                'body': body_text,
                 'snippet': m.get('snippet', ''),
-                'has_attachment': 'parts' in m['payload'],
+                'has_attachment': has_real_attachment(m['payload']),
                 'mail_date': dt_obj.strftime('%m-%d %H:%M'),
                 'full_date': dt_obj.strftime('%Y-%m-%d')
             })
@@ -390,12 +423,13 @@ def main():
     st.markdown('<h1 class="main-header"> 🚀 메일 자동화 시스템</h1>', unsafe_allow_html=True)
     st.caption("무역 인콰이어리 분석 + AI 답장 초안 자동 생성")
     
-    # 서비스 초기화
-    db = DBManager("data/trade_emails.db")
+    # 서비스 초기화 (__file__ 기준 절대 경로로 config 참조)
+    _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    db = DBManager(os.path.join(_BASE_DIR, "data", "trade_emails.db"))
     analyzer = InquiryAnalyzer(
         openai_api_key=OPENAI_API_KEY,
-        keywords_path="config/keywords.json",
-        jargon_path="config/jargon_map.json"
+        keywords_path=os.path.join(_BASE_DIR, "config", "keywords.json"),
+        jargon_path=os.path.join(_BASE_DIR, "config", "jargon_map.json")
     )
     reply_generator = ReplyGenerator(api_key=OPENAI_API_KEY)
     
