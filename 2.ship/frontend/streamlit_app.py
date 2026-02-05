@@ -4009,27 +4009,30 @@ with tab_brief:
                         if comm_name in st.session_state.selected_commodities:
                             st.session_state.selected_commodities.remove(comm_name)
 
-        # Quick select buttons
+        # Quick select buttons - 콜백 함수 (위젯 렌더링 전에 실행되어 키 충돌 방지)
+        def _comm_default():
+            st.session_state.selected_commodities = DEFAULT_COMMODITIES.copy()
+            for cn in COMMODITY_TICKERS:
+                st.session_state[f"comm_check_{cn}"] = cn in DEFAULT_COMMODITIES
+
+        def _comm_select_all():
+            st.session_state.selected_commodities = list(COMMODITY_TICKERS.keys())
+            for cn in COMMODITY_TICKERS:
+                st.session_state[f"comm_check_{cn}"] = True
+
+        def _comm_clear_all():
+            st.session_state.selected_commodities = []
+            for cn in COMMODITY_TICKERS:
+                st.session_state[f"comm_check_{cn}"] = False
+
         st.markdown("---")
         qcol1, qcol2, qcol3 = st.columns(3)
         with qcol1:
-            if st.button("🔄 기본값" if st.session_state.lang == "ko" else "🔄 Default", key="comm_default"):
-                st.session_state.selected_commodities = DEFAULT_COMMODITIES.copy()
-                for comm_name in COMMODITY_TICKERS:
-                    st.session_state[f"comm_check_{comm_name}"] = comm_name in DEFAULT_COMMODITIES
-                st.rerun()
+            st.button("🔄 기본값" if st.session_state.lang == "ko" else "🔄 Default", key="comm_default", on_click=_comm_default)
         with qcol2:
-            if st.button("✅ 전체 선택" if st.session_state.lang == "ko" else "✅ Select All", key="comm_all"):
-                st.session_state.selected_commodities = list(COMMODITY_TICKERS.keys())
-                for comm_name in COMMODITY_TICKERS:
-                    st.session_state[f"comm_check_{comm_name}"] = True
-                st.rerun()
+            st.button("✅ 전체 선택" if st.session_state.lang == "ko" else "✅ Select All", key="comm_all", on_click=_comm_select_all)
         with qcol3:
-            if st.button("❌ 전체 해제" if st.session_state.lang == "ko" else "❌ Clear All", key="comm_clear"):
-                st.session_state.selected_commodities = []
-                for comm_name in COMMODITY_TICKERS:
-                    st.session_state[f"comm_check_{comm_name}"] = False
-                st.rerun()
+            st.button("❌ 전체 해제" if st.session_state.lang == "ko" else "❌ Clear All", key="comm_clear", on_click=_comm_clear_all)
 
     # Get selected commodities as tuple for caching
     selected_tuple = tuple(st.session_state.selected_commodities)
