@@ -28,24 +28,41 @@ from datetime import datetime, timedelta
 import streamlit as st
 
 # ==============================================================================
-# [핵심 수정] 파일 생성 코드 (이름 통일함!)
+# [핵심 수정] Streamlit secrets → 인증 파일 복원
 # ==============================================================================
-# 시크릿(credentials.json)을 읽어서 -> 파일(credentials.json)로 만듭니다.
-# 대문자/소문자 신경 쓸 필요 없이 똑같이 맞췄습니다.
+# TOML에서 credentials.json = """...""" 은 st.secrets["credentials"]["json"]으로 파싱됨
+# token.json = """...""" 은 st.secrets["token"]["json"]으로 파싱됨
+#
+# Streamlit Cloud Secrets 입력 형식:
+#   credentials.json = """{"installed":{...}}"""
+#   token.json = """{"token":"...","refresh_token":"..."}"""
 
-if "credentials.json" in st.secrets:
-    secret_content = st.secrets["credentials.json"]
-    
-    # JSON 형식이 맞는지 검사 (안전장치)
+def _restore_from_secrets(toml_table, toml_key, filename):
+    """st.secrets에서 인증 파일을 복원합니다."""
     try:
-        json.loads(secret_content)
+        # TOML 점(.) 구분자로 인해 테이블.키 구조로 파싱됨
+        if toml_table in st.secrets and toml_key in st.secrets[toml_table]:
+            content = st.secrets[toml_table][toml_key]
+            json.loads(content)  # JSON 검증
+            with open(filename, "w") as f:
+                f.write(content)
+            logging.info(f"{filename} 복원 완료 (from secrets)")
+            return True
     except json.JSONDecodeError as e:
-        st.error(f"🚨 에러: 시크릿 내용이 깨졌습니다. 확인해주세요.\n{e}")
-        st.stop()
+        st.error(f"secrets '{toml_table}.{toml_key}' JSON 형식 오류: {e}")
+    except Exception as e:
+        logging.error(f"secrets '{toml_table}.{toml_key}' 로드 실패: {e}")
+    return False
 
-    # 파일 생성
-    with open("credentials.json", "w") as f:
-        f.write(secret_content)
+# credentials.json 복원: secrets의 credentials.json → ["credentials"]["json"]
+if not os.path.exists("credentials.json"):
+    _restore_from_secrets("credentials", "json", "credentials.json")
+
+# token.json 복원: secrets의 token.json → ["token"]["json"]
+if not os.path.exists("token.json"):
+    if not _restore_from_secrets("token", "json", "token.json"):
+        logging.warning("token.json이 없습니다. 로컬에서 먼저 OAuth 인증을 완료한 후 "
+                         "token.json 내용을 Streamlit secrets에 추가하세요.")
 
 # 환경변수 로드
 try:
