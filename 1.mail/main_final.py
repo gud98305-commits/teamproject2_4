@@ -414,6 +414,10 @@ def main():
         
         # 동기화 버튼
         if st.button("🔄 데이터 동기화 및 AI 분석", use_container_width=True):
+            # 기존 데이터 자동 초기화 (이전 메일이 남아있는 문제 방지)
+            db.clear_all()
+            st.session_state.reply_drafts = {}
+
             with st.spinner("메일 수집 및 분석 중..."):
                 if not GMAIL_AVAILABLE:
                     emails = get_demo_emails()
