@@ -4015,14 +4015,20 @@ with tab_brief:
         with qcol1:
             if st.button("🔄 기본값" if st.session_state.lang == "ko" else "🔄 Default", key="comm_default"):
                 st.session_state.selected_commodities = DEFAULT_COMMODITIES.copy()
+                for comm_name in COMMODITY_TICKERS:
+                    st.session_state[f"comm_check_{comm_name}"] = comm_name in DEFAULT_COMMODITIES
                 st.rerun()
         with qcol2:
             if st.button("✅ 전체 선택" if st.session_state.lang == "ko" else "✅ Select All", key="comm_all"):
                 st.session_state.selected_commodities = list(COMMODITY_TICKERS.keys())
+                for comm_name in COMMODITY_TICKERS:
+                    st.session_state[f"comm_check_{comm_name}"] = True
                 st.rerun()
         with qcol3:
             if st.button("❌ 전체 해제" if st.session_state.lang == "ko" else "❌ Clear All", key="comm_clear"):
                 st.session_state.selected_commodities = []
+                for comm_name in COMMODITY_TICKERS:
+                    st.session_state[f"comm_check_{comm_name}"] = False
                 st.rerun()
 
     # Get selected commodities as tuple for caching
