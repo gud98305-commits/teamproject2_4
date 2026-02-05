@@ -89,6 +89,7 @@ except ImportError:
 # 설정
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
+KST = timezone(timedelta(hours=9))
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger("TradeAssistant")
@@ -157,7 +158,6 @@ def fetch_emails_from_gmail(service, max_results=50, date_range=None, mode="개�
             start_date = end_date = date_range[0]
 
         # KST(UTC+9) 자정 기준 epoch 초로 변환 → UTC 기반 오프셋 문제 방지
-        KST = timezone(timedelta(hours=9))
         start_epoch = int(datetime(start_date.year, start_date.month, start_date.day, tzinfo=KST).timestamp())
         end_epoch = int(datetime(end_date.year, end_date.month, end_date.day, tzinfo=KST).timestamp()) + 86400
         query += f" after:{start_epoch} before:{end_epoch}"
@@ -176,7 +176,7 @@ def fetch_emails_from_gmail(service, max_results=50, date_range=None, mode="개�
             m = service.users().messages().get(userId='me', id=msg['id']).execute()
             
             date_raw = int(m['internalDate']) / 1000
-            dt_obj = datetime.fromtimestamp(date_raw)
+            dt_obj = datetime.fromtimestamp(date_raw, tz=KST)
             
             headers = m['payload'].get('headers', [])
             subject = next((h['value'] for h in headers if h['name'] == 'Subject'), "No Subject")
