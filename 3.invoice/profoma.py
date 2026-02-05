@@ -169,7 +169,7 @@ def detect_country_from_input(text: str):
 # 관세파일 자동 선택 A안 — 한국어 · 영어 파일명 모두 인식
 # -----------------------------------------------------------------------------
 def get_tariff_file_by_country(country: str):
-    folder = "tariff_files"
+    folder = Path(__file__).parent / "tariff_files"
 
     if not os.path.exists(folder):
         return None
@@ -465,7 +465,7 @@ def load_main_part3():
     # -------------------------------------------------------------------------
     st.subheader("3️⃣ 관세 파일 자동 선택")
 
-    folder = "tariff_files"
+    folder = Path(__file__).parent / "tariff_files"
     if not os.path.exists(folder):
         st.error("❌ tariff_files 폴더가 없습니다.")
         return
